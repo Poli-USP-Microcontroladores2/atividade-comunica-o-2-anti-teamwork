@@ -27,7 +27,6 @@
 #define UART_DEVICE_NODE DT_CHOSEN(zephyr_shell_uart)
 
 
-
 #define MSG_SIZE 512
 
 
