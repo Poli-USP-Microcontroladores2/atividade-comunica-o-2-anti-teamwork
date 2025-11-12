@@ -3,100 +3,122 @@ Atividade: Comunicação UART
 
 # Projeto UART – Atividade em Duplas (Echo Bot + Async API)
 
-## 1. Informações Gerais
-
 * Dupla:
 
-  * Integrante 1:
-  * Integrante 2:
-
-* Objetivo: implementar, testar e documentar aplicações de comunicação UART baseadas nos exemplos oficiais “echo_bot” e “async_api”, utilizando desenvolvimento orientado a testes, diagramas de sequência D2 e registro de evidências.
-
----
-
-# 2. Estrutura Esperada do Repositório
-
-```
-README.md
-src/
-
-docs/
-  evidence/
-  sequence-diagrams/
-
-```
-
----
-
-# 3. Etapa 1 – Echo Bot (UART Polling/Interrupt)
+  * Integrante 1: Guilherme da Silva Fernandes
+  * Integrante 2: Bruno Mora
 
 ## 3.1 Descrição do Funcionamento
 
-Descrever aqui de forma textual o comportamento esperado baseado no exemplo oficial.
-Link usado como referência:
-[https://docs.zephyrproject.org/latest/samples/drivers/uart/echo_bot/README.html](https://docs.zephyrproject.org/latest/samples/drivers/uart/echo_bot/README.html)
+* O programa é capaz de receber mensagens pelo serial monitor e repetir elas pela porta serial através do serial monitor como se o que foi escrito tivesse ecoado. É importante salientar que ele é capaz de repetir até 511 caractéres por mensagem, caractéres acentuádos valem por 2 e espaçamentos são contabilizados.
+* Ele utiliza da interface UART(serial) para receber as linhas do usuário e seu funcionamento é graças as interrupções que são geradas toda vez que um caractere novo entra na porta UART. Esses caracteres são armazenados em um buffer ao detectar o enter(\r) do usuário e colocados na fila. O main acorda quando vê essas mensagens, lê elas e envia de volta como um eco.
 
 ## 3.2 Casos de Teste Planejados (TDD)
 
 ### CT1 – Eco básico
-
-* Entrada:
-* Saída esperada:
-* Critério de Aceitação:
+* Entrada: Hello
+* Saída esperada: Hello
+* Critério de Aceitação: imprimir "Echo:Hello"
 
 ### CT2 – Linha vazia
-
+* Entrada: vazia
+* Saída esperada: Vazio
+* critério de aceitação: não imprimir nada
+  
 ### CT3 – Linha longa
+* Entrada: três pratos de trigo para três tigres tristes
+* Saída esperada: três pratos de trigo para três 
+* Critério de aceitação: imprimir toda a frase
 
-(Adicionar mais casos se necessário.)
+### CT4 - Números:
+* Entrada: 1234567899
+* Saida: 123456789
+* Critério de aceitação: ser capaz de imprimir esses números
+
+### CT5 - Caractéres especiais:
+* Entrada: !@#$%¨&*()+=-_{}^<>?[]
+* Saída esperada: imprimir todos os caractéres enviados.
+* Critério de aceitação: conseguir ecoar os caracteres
 
 ## 3.3 Implementação
 
-* Arquivo(s) modificados:
-* Justificativa das alterações:
-
+* Arquivo(s) modificados: prj conf teve sua estrutura alterada para adicionar as linhas: "CONFIG_SERIAL=y" e "CONFIG_UART_INTERRUPT_DRIVEN=y". Além disso, o main.c teve o número de caractéres alterado de 32 para 512.
+* Justificativa das alterações: Essas alterações foram necessárias para habilitar a porta serial e para tornar a resposta mais eficiente e veloz, pois permite que a cpu não precise verificar a todo momento se o UART está liberado. Além disso, as mudanças do main permitem que o echo bot ecoe mais caractéres do que originalmente, visto que ele era capaz de imprimir 31 e agora consegue 512.
+* 
 ## 3.4 Evidências de Funcionamento
 
-Salvar evidências em `docs/evidence/echo_bot/`.
+* 1° Eco básico:
 
-Exemplo de referência no README:
+<img width="1334" height="109" alt="image" src="https://github.com/user-attachments/assets/88d9cf0a-ac5f-49b1-981b-591c961b9a52" />
 
-```
-[Link para o log CT1](docs/evidence/echo_bot/ct1_output.txt)
-```
+* 2° Texto vazio:
+  
+<img width="1334" height="109" alt="image" src="https://github.com/user-attachments/assets/6a46cb2f-7951-4192-a131-7bc673c58cda" />
 
-Adicionar aqui pequenos trechos ilustrativos:
+* 3° Texto longo:
 
-```
-Hello! I'm your echo bot. Tell me something and press enter:
-Echo: Hello World!
-```
+<img width="1334" height="109" alt="image" src="https://github.com/user-attachments/assets/595cb5e0-4333-4f0d-9a08-69116365c5b4" />
+
+* 4° Números:
+
+<img width="1334" height="109" alt="image" src="https://github.com/user-attachments/assets/af1fe980-c04c-4185-8e13-34541187973f" />
+
+* 5° Caractéres especiais:
+
+<img width="1334" height="109" alt="image" src="https://github.com/user-attachments/assets/1b1d987d-fb87-406d-8424-8038b2199c10" />
+
+## Logs:
+
+- CT1:
+  
+1. Hello! I'm your echo bot.
+2. Tell me something and press enter:
+3. ---- Sent utf8 encoded message: "Hello\r" ----
+4. Echo: Hello
+
+- CT2:
+  
+1. Hello! I'm your echo bot.
+2. Tell me something and press enter:
+3. ---- Sent utf8 encoded message: "\r" ----
+
+- CT3:
+1. Hello! I'm your echo bot.
+2. Tell me something and press enter:  
+3. ---- Sent utf8 encoded message: "Três pratos de trigo para três tigres tristes\r" ----
+4. Echo: Três pratos de trigo para três tigres tristes
+
+- CT4:
+
+1. Hello! I'm your echo bot.
+2. Tell me something and press enter:
+3. ---- Sent utf8 encoded message: "123456789\r" ----
+4. Echo: 123456789
+
+- CT5:
+  
+1. Hello! I'm your echo bot.
+2. Tell me something and press enter:
+3. ---- Sent utf8 encoded message: "!@#$%&*()+=-_{}^<>?[]\r" ----
+4. Echo: !@#$%&*()+=-_{}^<>?[]
 
 ## 3.5 Diagramas de Sequência D2
 
-Vide material de apoio: https://d2lang.com/tour/sequence-diagrams/
-
-Adicionar arquivos (diagrama completo e o código-base para geração do diagrama) em `docs/sequence-diagrams/`.
-
----
 
 # 4. Etapa 2 – Async API (Transmissão/Recepção Assíncrona)
 
 ## 4.1 Descrição do Funcionamento
 
-Descrever o comportamento esperado de forma textual, especialmente com a alternância TX/RX.
-Link usado como referência:
-[https://docs.zephyrproject.org/latest/samples/drivers/uart/async_api/README.html](https://docs.zephyrproject.org/latest/samples/drivers/uart/async_api/README.html)
+É esperado que a cada 5 segundos ele envie pacotes de texto entre 1 e 4, em loop sem parar e sem problemas relacionados a interrupções. 
 
 ## 4.2 Casos de Teste Planejados (TDD)
 
 ### CT1 – Transmissão de pacotes a cada 5s
-
+*
 ### CT2 – Recepção
-
+*
 ### CT3 – Verificação de timing dos 5s
-
-(Adicionar mais casos se necessário.)
+*
 
 ## 4.3 Implementação
 
