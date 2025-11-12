@@ -119,14 +119,15 @@ Atividade: Comunicação UART
 
 ## 4.1 Descrição do Funcionamento
 
-É esperado que a cada 5 segundos ele envie pacotes de texto entre 1 e 4, em loop sem parar e sem problemas relacionados a interrupções. 
+O código entra em um loop infinito que, a cada 5 segundos, executa duas ações principais: envia uma rajada de 1 a 4 pacotes pela UART e alterna o estado do receptor (liga ou desliga o RX). O gerenciamento assíncrono é feito por callbacks (TX e RX) que são responsáveis por permitir o envio de pacotes e fornecer um buffer vago a UART, respectivamente.
 
 ## 4.2 Casos de Teste Planejados (TDD)
 
 ### CT1 – Transmissão de pacotes a cada 5s
-*
+* 
 ### CT2 – Recepção
-*
+<img width="1334" height="286" alt="image" src="https://github.com/user-attachments/assets/e5956429-049d-4b91-9d2e-fdeb06751f5e" />
+
 ### CT3 – Verificação de timing dos 5s
 *
 
