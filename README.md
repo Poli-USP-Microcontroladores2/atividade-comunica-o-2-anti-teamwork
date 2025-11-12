@@ -102,9 +102,19 @@ Atividade: Comunicação UART
 3. ---- Sent utf8 encoded message: "!@#$%&*()+=-_{}^<>?[]\r" ----
 4. Echo: !@#$%&*()+=-_{}^<>?[]
 
-## 3.5 Diagramas de Sequência D2
+## 3.5 Diagramas de Sequência D2:
 
+<img width="820" height="735" alt="image" src="https://github.com/user-attachments/assets/0ee0c9b4-60f5-4ddf-b2f2-22666c93bd10" />
 
+* código utilizado:
+shape: sequence_diagram
+Main -> Fila_de_mensagens: k_msgq_get(K_FOREVER)
+Usuario -> UART_Hardware: Hello!
+UART_Hardware -> UART_Driver: interrupção
+UART_Driver -> Fila_de_mensagens: k_msgq_put("Hello!")
+Fila_de_mensagens -> Main: Hello!
+Main -> UART_Hardware: Echo: Hello!
+UART_Hardware -> Usuario: Echo: Hello!
 # 4. Etapa 2 – Async API (Transmissão/Recepção Assíncrona)
 
 ## 4.1 Descrição do Funcionamento
