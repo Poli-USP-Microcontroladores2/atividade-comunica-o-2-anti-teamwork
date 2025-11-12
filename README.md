@@ -137,6 +137,10 @@ O código entra em um loop infinito que, a cada 5 segundos, executa duas ações
 
 * Critério de aceitação: ter 5 segundos entre cada loop.
 
+## CT4 - Verificação da conversa entre placas:
+
+* Critério de aceitação: as placas conversarem
+
 ## 4.3 Implementação
 
 * Arquivos modificados: o main foi modificado(#define UART_DEVICE_NODE DT_NODELABEL(uart0)) para definir corretamente o UART0. Além disso o prj conf também foi alterado para adicionar 3 linhas que ativam o console, o async api e a main stacksize com 1024.
@@ -150,6 +154,7 @@ O código entra em um loop infinito que, a cada 5 segundos, executa duas ações
 
 * CT3:
 
+* CT4:
 
 
 ## 4.5 Diagramas de Sequência D2
