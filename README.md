@@ -124,48 +124,37 @@ O código entra em um loop infinito que, a cada 5 segundos, executa duas ações
 ## 4.2 Casos de Teste Planejados (TDD)
 
 ### CT1 – Transmissão de pacotes a cada 5s
-* 
+
+* Critério de aceitação: O envio ser feito corretamente a cada 5s.
+
 ### CT2 – Recepção
-<img width="1334" height="286" alt="image" src="https://github.com/user-attachments/assets/e5956429-049d-4b91-9d2e-fdeb06751f5e" />
+
+* Entrada: teste
+* Saida: teste
+* Critério de aceitação: conseguir imprimir "teste"
 
 ### CT3 – Verificação de timing dos 5s
-*
+
+* Critério de aceitação: ter 5 segundos entre cada loop.
 
 ## 4.3 Implementação
 
-* Arquivos modificados:
-* Motivos/Justificativas:
+* Arquivos modificados: o main foi modificado(#define UART_DEVICE_NODE DT_NODELABEL(uart0)) para definir corretamente o UART0. Além disso o prj conf também foi alterado para adicionar 3 linhas que ativam o console, o async api e a main stacksize com 1024.
+* Motivos/Justificativas: Permitir que o compilador localize o UART e ative corretamente todas as funções.
 
 ## 4.4 Evidências de Funcionamento
 
-Salvar em `docs/evidence/async_api/`.
+* CT1:
 
-Exemplo:
+* CT2:
 
-```
-Loop 0:
-Sending 3 packets (packet size: 5)
-Packet: 0
-Packet: 1
-Packet: 2
-```
+* CT3:
 
-Ou:
 
-```
-RX is now enabled
-UART callback: RX_RDY
-Data (HEX): 48 65 6C 6C 6F
-Data (ASCII): Hello
-```
 
 ## 4.5 Diagramas de Sequência D2
 
-Vide material de referência: https://d2lang.com/tour/sequence-diagrams/
 
-Adicionar arquivos (diagrama completo e o código-base para geração do diagrama) em `docs/sequence-diagrams/`.
-
----
 
 # 5. Conclusões da Dupla
 
