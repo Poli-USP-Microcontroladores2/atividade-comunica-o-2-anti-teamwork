@@ -148,14 +148,14 @@ O código entra em um loop infinito que, a cada 5 segundos, executa duas ações
 
 ## 4.4 Evidências de Funcionamento
 
-* CT1:
+[* CT1:
 
 * CT2:
 
 * CT3:
 
 * CT4:
-
+](https://github.com/user-attachments/assets/c63ecc6b-5819-4e0f-b4dc-ac1060bebace)
 
 ## 4.5 Diagramas de Sequência D2
 
