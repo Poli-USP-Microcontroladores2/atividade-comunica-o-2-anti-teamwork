@@ -143,19 +143,19 @@ O código entra em um loop infinito que, a cada 5 segundos, executa duas ações
 
 ## 4.3 Implementação
 
-* Arquivos modificados: o main foi modificado(#define UART_DEVICE_NODE DT_NODELABEL(uart0)) para definir corretamente o UART0. Além disso o prj conf também foi alterado para adicionar 3 linhas que ativam o console, o async api e a main stacksize com 1024.
-* Motivos/Justificativas: Permitir que o compilador localize o UART e ative corretamente todas as funções.
+* Arquivos modificados: 
+* Motivos/Justificativas: 
 
 ## 4.4 Evidências de Funcionamento
 
-[* CT1:
+* CT1:
 
 * CT2:
 
 * CT3:
 
 * CT4:
-](https://github.com/user-attachments/assets/c63ecc6b-5819-4e0f-b4dc-ac1060bebace)
+
 
 ## 4.5 Diagramas de Sequência D2
 
