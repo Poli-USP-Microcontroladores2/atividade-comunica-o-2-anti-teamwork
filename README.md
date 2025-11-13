@@ -163,5 +163,5 @@ O código entra em um loop infinito que, a cada 5 segundos, executa duas ações
 
 # 5. Conclusões da Dupla
 
-* O que deu certo:
-* O que foi mais desafiador:
+* O que deu certo: A implementação do echo bot foi perfeita e ocorreu como esperado, tornando mais fácil a criação de TDDs para demonstrar o funcionamento esperado do programa.
+* O que foi mais desafiador: O async-api foi muitas vezes mais desafiador, devido ao não funcionamento do código na FRDMKL25Z. Isso ocorreu devido ao uso do UART0 da placa ser usado tanto pela porta USB quanto para o funcionamento do código, ou seja, algumas tarefas são interrompidas no meio e ele devolve no monitor serial o aviso de erro 134.
