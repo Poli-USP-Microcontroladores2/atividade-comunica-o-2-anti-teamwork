@@ -1,11 +1,14 @@
-<img width="820" height="735" alt="image" src="https://github.com/user-attachments/assets/0ee0c9b4-60f5-4ddf-b2f2-22666c93bd10" />
+   <img width="1826" height="1202" alt="image" src="https://github.com/user-attachments/assets/de206f01-7de4-4d2e-b68a-2fbe67d4b135" />
 
-* código utilizado:
-1. shape: sequence_diagram
-2. Main -> Fila_de_mensagens: k_msgq_get(K_FOREVER)
-3. Usuario -> UART_Hardware: Hello!
-4. UART_Hardware -> UART_Driver: interrupção
-5. UART_Driver -> Fila_de_mensagens: k_msgq_put("Hello!")
-6. Fila_de_mensagens -> Main: Hello!
-7. Main -> UART_Hardware: Echo: Hello!
-8. UART_Hardware -> Usuario: Echo: Hello!
+1. main -> UART_Driver: uart_callback_set(uart_cb)
+2. main -> UART_Driver: inicializa RX como 0
+3. main -> sem: inicializa semáforo como 1
+4, main -> sem: Pega semáforo
+5. main -> UART_Driver: acessa buffer
+6. UART_Driver -> UART0: Inicializa transmissão assíncrona
+7. UART0 -> UART_Driver: Completa transmissão
+8. UART_Driver -> sem: Libera semáforo
+9. main -> UART_Driver: alterna RX
+10. UART0 -> UART_Driver: Recebe bytes
+11. UART_Driver -> App: printk("RX: ....")
+
