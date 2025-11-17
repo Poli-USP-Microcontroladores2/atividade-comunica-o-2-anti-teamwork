@@ -1,62 +1,94 @@
 /*
- * UART0 async TX/RX example for FRDM-KL25Z
- * Compatible with Zephyr 4.2 and minimal headers
- * SPDX-License-Identifier: Apache-2.0
+ * Versão: RX nunca é desabilitado no driver.
+ * A ISR sempre esvazia o FIFO; quando rx_app_enabled == false,
+ * os bytes são apenas descartados (contados).
+ *
+ * Mantive a lógica original: TX por polling, alternância periódica
+ * (habilita/desabilita rx lógico).
  */
 
 #include <zephyr/kernel.h>
 #include <zephyr/device.h>
 #include <zephyr/drivers/uart.h>
 #include <zephyr/sys/printk.h>
+#include <string.h>
+#include <stdbool.h>
 
-#define UART_DEVICE_NODE DT_NODELABEL(uart0)
-
-/* Configurações */
+#define PERIODO_SEGUNDOS 5
 #define LOOP_ITER_MAX_TX 4
 #define MAX_TX_LEN 64
-#define RX_CHUNK_LEN 32
 
+#define UART_DEVICE_NODE DT_NODELABEL(uart0)
 static const struct device *const uart_dev = DEVICE_DT_GET(UART_DEVICE_NODE);
 
-/* Buffers de TX e RX */
+#define RX_BUF_SIZE 64
+static char rx_buf[RX_BUF_SIZE];
+static volatile int rx_buf_pos = 0;
+
+/* flag lógica: quando true, a aplicação processa bytes; quando false, ISR descarta */
+static volatile bool rx_app_enabled = false;
+
+/* contador de bytes descartados enquanto rx_app_enabled == false (útil p/ debug) */
+static volatile unsigned int dropped_bytes = 0;
+
 static char tx_buffer[MAX_TX_LEN];
-static uint8_t rx_buffers[2][RX_CHUNK_LEN];
-static volatile uint8_t rx_index = 0;
 
-/* Controle de estado */
-static bool rx_enabled = false;
-static struct k_sem tx_done_sem;
-
-/* Callback de eventos UART */
-static void uart_cb(const struct device *dev, struct uart_event *evt, void *user_data)
+/* TX por polling (bloqueante) */
+static void print_uart_poll(const char *buf)
 {
-    ARG_UNUSED(dev);
+    int msg_len = strlen(buf);
+    for (int i = 0; i < msg_len; i++) {
+        uart_poll_out(uart_dev, buf[i]);
+    }
+}
+
+/* ISR: sempre lê tudo do FIFO; processa só se rx_app_enabled for true */
+static void uart_isr(const struct device *dev, void *user_data)
+{
     ARG_UNUSED(user_data);
 
-    switch (evt->type) {
-    case UART_TX_DONE:
-        /* Libera semáforo para permitir novo envio */
-        k_sem_give(&tx_done_sem);
-        break;
-
-    case UART_RX_BUF_REQUEST:
-        /* Fornece o próximo buffer de recepção */
-        rx_index ^= 1; /* alterna entre 0 e 1 */
-        uart_rx_buf_rsp(dev, rx_buffers[rx_index], sizeof(rx_buffers[0]));
-        break;
-
-    case UART_RX_RDY:
-        /* Dados recebidos */
-        printk("RX: %.*s\n", evt->data.rx.len, evt->data.rx.buf + evt->data.rx.offset);
-        break;
-
-    case UART_RX_DISABLED:
-        printk("UART RX desabilitado\n");
-        break;
-
-    default:
-        break;
+    /* Nota: mantemos a mesma estrutura: while(uart_irq_update && uart_irq_rx_ready) */
+    while (uart_irq_update(dev) && uart_irq_rx_ready(dev)) {
+        uint8_t c;
+        /* lê enquanto houver bytes no FIFO */
+        while (uart_fifo_read(dev, &c, 1) == 1) {
+            if (!rx_app_enabled) {
+                /* descartamos bytes recebidos fora do período — incrementa contador para debug */
+                dropped_bytes++;
+                /* opcional: poderíamos limitar o contador para evitar overflow */
+            } else {
+                /* Processamento normal: monta linha até CR/LF */
+                if ((c == '\n' || c == '\r') && rx_buf_pos > 0) {
+                    rx_buf[rx_buf_pos] = '\0';
+                    printk("RX (ISR): %s\n", rx_buf);
+                    rx_buf_pos = 0;
+                } else if (rx_buf_pos < (RX_BUF_SIZE - 1)) {
+                    rx_buf[rx_buf_pos++] = c;
+                } else {
+                    /* buffer cheio: descarta e reseta (evita travamento pelo overflow) */
+                    rx_buf_pos = 0;
+                    /* opcional: sinalizar overflow */
+                    printk("RX buffer overflow - descartando dados\n");
+                }
+            }
+        }
     }
+}
+
+/* Habilita/desabilita o RX da "aplicação" com proteção (irq_lock) */
+static void set_rx_app_enabled(bool enable)
+{
+    unsigned int key = irq_lock();
+    if (enable) {
+        /* limpa estado da aplicação: zera buffer e contador de descartes */
+        rx_buf_pos = 0;
+        dropped_bytes = 0;
+        rx_app_enabled = true;
+    } else {
+        rx_app_enabled = false;
+        /* manter dropped_bytes acumulando para diagnóstico */
+    }
+    irq_unlock(key);
 }
 
 void main(void)
@@ -68,42 +100,52 @@ void main(void)
         return;
     }
 
-    k_sem_init(&tx_done_sem, 1, 1);
-    uart_callback_set(uart_dev, uart_cb, NULL);
+    uart_irq_callback_user_data_set(uart_dev, uart_isr, NULL);
+    uart_irq_rx_enable(uart_dev);
 
-    printk("Iniciando exemplo UART0 assíncrona (FRDM-KL25Z)\n");
+    printk("App iniciada. RX lógico alterna, mas RX HW fica sempre habilitado.\n");
+    printk("TX por polling; printk e app compartilham UART0.\n");
+
+    /* timestamp para medir delta-t entre loops */
+    uint64_t last_ts = k_uptime_get();
 
     while (1) {
-        k_sleep(K_SECONDS(5));
 
+        /* --- cálculo do delta-t (antes do sleep) --- */
+        uint64_t now = k_uptime_get();
+        uint64_t delta_ms = now - last_ts;
+        last_ts = now;
+
+        printk("\n---- Loop %d (Δt = %llu ms) ----\n", loop_counter, delta_ms);
+        /* agora dorme o período nominal */
+        k_sleep(K_SECONDS(PERIODO_SEGUNDOS));
+
+        /* --- TX (síncrono) --- */
         int num_tx = (loop_counter % LOOP_ITER_MAX_TX) + 1;
-        printk("\nLoop %d: enviando %d pacotes...\n", loop_counter, num_tx);
+        printk("Enviando %d pacotes (Polling TX)...\n", num_tx);
 
         for (int i = 0; i < num_tx; i++) {
-            /* Espera TX anterior terminar */
-            k_sem_take(&tx_done_sem, K_FOREVER);
+            snprintk(tx_buffer, MAX_TX_LEN, "[Placa %d] Pacote %d\r\n",
+                     loop_counter, i);
+            print_uart_poll(tx_buffer);
+        }
 
-            int len = snprintk(tx_buffer, sizeof(tx_buffer),
-                               "Loop %d, Pacote %d\r\n", loop_counter, i);
+        /* --- Alterna RX lógico --- */
+        bool new_rx_state = !rx_app_enabled;
+        set_rx_app_enabled(new_rx_state);
 
-            int rc = uart_tx(uart_dev, tx_buffer, len, SYS_FOREVER_US);
-            if (rc != 0) {
-                printk("Erro no uart_tx (%d)\n", rc);
-                k_sem_give(&tx_done_sem);
+        if (new_rx_state) {
+            printk("RX (aplicação) [HABILITADO]\n");
+        } else {
+            printk("RX (aplicação) [DESABILITADO]\n");
+            if (dropped_bytes) {
+                printk("  (bytes descartados enquanto desabilitado: %u)\n",
+                       dropped_bytes);
             }
         }
-
-        /* Alterna o estado do RX */
-        if (rx_enabled) {
-            uart_rx_disable(uart_dev);
-        } else {
-            rx_index = 0;
-            uart_rx_enable(uart_dev, rx_buffers[0], RX_CHUNK_LEN, 100);
-        }
-
-        rx_enabled = !rx_enabled;
-        printk("RX agora está %s\n", rx_enabled ? "habilitado" : "desabilitado");
 
         loop_counter++;
     }
 }
+
+
