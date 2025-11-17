@@ -119,13 +119,13 @@ Atividade: Comunicação UART
 
 ## 4.1 Descrição do Funcionamento
 
-O código entra em um loop infinito que, a cada 5 segundos, executa duas ações principais: envia uma rajada de 1 a 4 pacotes pela UART e alterna o estado do receptor (liga ou desliga o RX). O gerenciamento assíncrono é feito por callbacks (TX e RX) que são responsáveis por permitir o envio de pacotes e fornecer um buffer vago a UART, respectivamente.
+
 
 ## 4.2 Casos de Teste Planejados (TDD)
 
 ### CT1 – Transmissão de pacotes a cada 5s
 
-* Critério de aceitação: O envio ser feito corretamente a cada 5s.
+* Critério de aceitação: o log de loop estar sendo enviado.
 
 ### CT2 – Recepção
 
@@ -137,25 +137,21 @@ O código entra em um loop infinito que, a cada 5 segundos, executa duas ações
 
 * Critério de aceitação: ter 5 segundos entre cada loop.
 
-## CT4 - Verificação da conversa entre placas:
-
-* Critério de aceitação: as placas conversarem
-
 ## 4.3 Implementação
 
-* Arquivos modificados: o main foi modificado(#define UART_DEVICE_NODE DT_NODELABEL(uart0)) para definir corretamente o UART0. Além disso o prj conf também foi alterado para adicionar 3 linhas que ativam o console, o async api e a main stacksize com 1024.
-* Motivos/Justificativas: Permitir que o compilador localize o UART e ative corretamente todas as funções.
+* Arquivos modificados: 
+* Motivos/Justificativas: 
 
 ## 4.4 Evidências de Funcionamento
 
-[* CT1:
+* CT1:
 
 * CT2:
 
 * CT3:
 
 * CT4:
-](https://github.com/user-attachments/assets/c63ecc6b-5819-4e0f-b4dc-ac1060bebace)
+
 
 ## 4.5 Diagramas de Sequência D2
 
@@ -179,4 +175,4 @@ O código entra em um loop infinito que, a cada 5 segundos, executa duas ações
 # 5. Conclusões da Dupla
 
 * O que deu certo: A implementação do echo bot foi perfeita e ocorreu como esperado, tornando mais fácil a criação de TDDs para demonstrar o funcionamento esperado do programa.
-* O que foi mais desafiador: O async-api foi muitas vezes mais desafiador, devido ao não funcionamento do código na FRDMKL25Z. Isso ocorreu devido ao uso do UART0 da placa ser usado tanto pela porta USB quanto para o funcionamento do código, ou seja, algumas tarefas são interrompidas no meio e ele devolve no monitor serial o aviso de erro 134.
+* O que foi mais desafiador: O async-api foi muitas vezes mais desafiador, devido ao não funcionamento do código na FRDMKL25Z. Isso ocorreu devido ao uso do UART0 da placa ser usado tanto pela porta USB quanto para o funcionamento do código, ou seja, algumas tarefas são interrompidas no meio e ele devolve no monitor serial o aviso de erro 134. Para conseguir realizar a atividade tivemos de descartar o async-api e optamos por um código que utilizasse interrupções assim como o echo bot pois, apesar das desvantagens, ele foi capaz de passar nos critérios de avaliação.
