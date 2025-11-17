@@ -119,13 +119,13 @@ Atividade: Comunicação UART
 
 ## 4.1 Descrição do Funcionamento
 
-O código entra em um loop infinito que, a cada 5 segundos, executa duas ações principais: envia uma rajada de 1 a 4 pacotes pela UART e alterna o estado do receptor (liga ou desliga o RX). O gerenciamento assíncrono é feito por callbacks (TX e RX) que são responsáveis por permitir o envio de pacotes e fornecer um buffer vago a UART, respectivamente.
+
 
 ## 4.2 Casos de Teste Planejados (TDD)
 
 ### CT1 – Transmissão de pacotes a cada 5s
 
-* Critério de aceitação: O envio ser feito corretamente a cada 5s.
+* Critério de aceitação: o log de loop estar sendo enviado.
 
 ### CT2 – Recepção
 
@@ -136,10 +136,6 @@ O código entra em um loop infinito que, a cada 5 segundos, executa duas ações
 ### CT3 – Verificação de timing dos 5s
 
 * Critério de aceitação: ter 5 segundos entre cada loop.
-
-## CT4 - Verificação da conversa entre placas:
-
-* Critério de aceitação: as placas conversarem
 
 ## 4.3 Implementação
 
@@ -179,4 +175,4 @@ O código entra em um loop infinito que, a cada 5 segundos, executa duas ações
 # 5. Conclusões da Dupla
 
 * O que deu certo: A implementação do echo bot foi perfeita e ocorreu como esperado, tornando mais fácil a criação de TDDs para demonstrar o funcionamento esperado do programa.
-* O que foi mais desafiador: O async-api foi muitas vezes mais desafiador, devido ao não funcionamento do código na FRDMKL25Z. Isso ocorreu devido ao uso do UART0 da placa ser usado tanto pela porta USB quanto para o funcionamento do código, ou seja, algumas tarefas são interrompidas no meio e ele devolve no monitor serial o aviso de erro 134.
+* O que foi mais desafiador: O async-api foi muitas vezes mais desafiador, devido ao não funcionamento do código na FRDMKL25Z. Isso ocorreu devido ao uso do UART0 da placa ser usado tanto pela porta USB quanto para o funcionamento do código, ou seja, algumas tarefas são interrompidas no meio e ele devolve no monitor serial o aviso de erro 134. Para conseguir realizar a atividade tivemos de descartar o async-api e optamos por um código que utilizasse interrupções assim como o echo bot pois, apesar das desvantagens, ele foi capaz de passar nos critérios de avaliação.
