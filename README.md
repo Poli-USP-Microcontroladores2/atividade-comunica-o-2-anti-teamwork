@@ -138,8 +138,8 @@ O RX de hardware fica sempre habilitado, mas a aplicação possui uma flag lógi
 
 ## 4.3 Implementação
 
-* Arquivos modificados:
-* Motivos/Justificativas: 
+* Arquivos modificados: o arquivo main.c teve de ser modificado para ser baseado no código do echo-bot, funcionando por interrupção. As principais mudanças foram: a adição de limpeza no rx, processamento do código na ISR, adição de flags e logs com o tempo entre loops.
+* Motivos/Justificativas: Essas mudanças foram necessárias devido as limitações do microcontrolador utilizado, nos obrigando a descartar a utilizaçao do async-api e imitarmos o código utilizando interrupções. 
 
 ## 4.4 Evidências de Funcionamento
 
