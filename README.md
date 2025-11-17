@@ -118,8 +118,7 @@ Atividade: Comunicação UART
 # 4. Etapa 2 – Async API (Transmissão/Recepção Assíncrona)
 
 ## 4.1 Descrição do Funcionamento
-
-
+O RX de hardware fica sempre habilitado, mas a aplicação possui uma flag lógica (rx_app_enabled) que determina se os bytes recebidos serão processados ou apenas descartados. Essa ISR da UART lê todos os bytes disponíveis no FIFO sempre que ocorre interrupção: se rx_app_enabled == true, monta mensagens até encontrar \n ou \r e imprime via printk; se rx_app_enabled == false, apenas conta os bytes descartados. A transmissão (TX) é feita por polling, usando uart_poll_out, enviando alguns pacotes a cada iteração do loop principal que funciona a cada 5 segundos. A UART é compartilhada entre o printk (log do sistema), as transmissões de aplicação (via polling) e a recepção tratada pela ISR.
 
 ## 4.2 Casos de Teste Planejados (TDD)
 
@@ -139,19 +138,22 @@ Atividade: Comunicação UART
 
 ## 4.3 Implementação
 
-* Arquivos modificados: 
-* Motivos/Justificativas: 
+* Arquivos modificados: o arquivo main.c teve de ser modificado para ser baseado no código do echo-bot, funcionando por interrupção. As principais mudanças foram: a adição de limpeza no rx, processamento do código na ISR, adição de flags e logs com o tempo entre loops.
+* Motivos/Justificativas: Essas mudanças foram necessárias devido as limitações do microcontrolador utilizado, nos obrigando a descartar a utilizaçao do async-api e imitarmos o código utilizando interrupções. 
 
 ## 4.4 Evidências de Funcionamento
 
 * CT1:
 
+ <img width="1334" height="299" alt="image" src="https://github.com/user-attachments/assets/d4f2762f-8c79-4aea-9308-e5f0f8e6274c" />
+
 * CT2:
+
+<img width="1334" height="208" alt="image" src="https://github.com/user-attachments/assets/bb756dd8-6d8c-43bf-8ec0-e53d37ae889a" />
 
 * CT3:
 
-* CT4:
-
+<img width="1320" height="324" alt="image" src="https://github.com/user-attachments/assets/71edee36-5d8e-431f-acfa-cc1c4c35db29" />
 
 ## 4.5 Diagramas de Sequência D2
 
@@ -168,9 +170,6 @@ Atividade: Comunicação UART
 9. main -> UART_Driver: alterna RX
 10. UART0 -> UART_Driver: Recebe bytes
 11. UART_Driver -> App: printk("RX: ....")
-
-
-
 
 # 5. Conclusões da Dupla
 
